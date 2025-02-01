@@ -2,26 +2,28 @@ import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# Read the JSON file
-with open('data.json', 'r') as file:
-    marks_data = json.load(file)
+# Load the data from the JSON file
+with open('data.json', 'r') as f:
+    students_data = json.load(f)
 
-# Convert the list to a dictionary for easier lookup
-marks_dict = {entry['name']: entry['marks'] for entry in marks_data}
-
-# Create Flask app
+# Create the Flask application
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 @app.route('/api', methods=['GET'])
-def get_marks():
+def get_student_marks():
+    # Get names from query parameters
     names = request.args.getlist('name')
     
-    # Find marks for given names
-    result_marks = []
-    for name in names:
-        mark = marks_dict.get(name)
-        if mark is not None:
-            result_marks.append(mark)
-    
-    return jsonify({"marks": result_marks})
+    # Fetch marks for the given names
+    marks = [
+        next((student["marks"] for student in students_data if student["name"] == name), None)
+        for name in names
+    ]
+
+    # Return JSON response
+    return jsonify({"marks": marks})
+
+# This is for local testing
+if __name__ == '__main__':
+    app.run(debug=True)
