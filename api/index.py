@@ -1,26 +1,27 @@
 import json
-from http.server import BaseHTTPRequestHandler
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-# Load the data from the JSON file
-with open("data.json") as f:
-    students_data = json.load(f)
+# Read the JSON file
+with open('q-vercel-python.json', 'r') as file:
+    marks_data = json.load(file)
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        # Parse query parameters
-        from urllib.parse import parse_qs, urlparse
+# Convert the list to a dictionary for easier lookup
+marks_dict = {entry['name']: entry['marks'] for entry in marks_data}
 
-        query = parse_qs(urlparse(self.path).query)
-        names = query.get("name", [])
+# Create Flask app
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
-        # Fetch marks for the given names
-        marks = [
-            next((student["marks"] for student in students_data if student["name"] == name), None)
-            for name in names
-        ]
-
-        # Respond with JSON
-        self.send_response(200)
-        self.send_header("Content-type", "application/json")
-        self.end_headers()
-        self.wfile.write(json.dumps({"marks": marks}).encode("utf-8"))
+@app.route('/api', methods=['GET'])
+def get_marks():
+    names = request.args.getlist('name')
+    
+    # Find marks for given names
+    result_marks = []
+    for name in names:
+        mark = marks_dict.get(name)
+        if mark is not None:
+            result_marks.append(mark)
+    
+    return jsonify({"marks": result_marks})
