@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 # Read the JSON file
-with open('q-vercel-python.json', 'r') as file:
+with open('data.json', 'r') as file:
     marks_data = json.load(file)
 
 # Convert the list to a dictionary for easier lookup
